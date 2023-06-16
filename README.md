@@ -1,1 +1,1 @@
-# smol-url
+# smol-url-py
