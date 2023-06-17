@@ -1,14 +1,32 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+from typing import Dict
+from resources.key_generating_service import generate_short_url
+from fastapi.responses import RedirectResponse
+from temp_db import url_store
 
 app = FastAPI()
+
 
 @app.get("/")
 def read_root():
     return {"Hello": "World"}
 
-@app.get("/items/{item_id}")
-def read_item(item_id: int, q: str = None):
-    return {"item_id": item_id, "q": q}
+@app.post("/shorten")
+async def shorten_url(url_request: str):
+    short_url = generate_short_url()
+    url_store[short_url] = url_request
+    return {"short_url": short_url}
+
+@app.get("/{short_url}")
+async def redirect_to_original_url(short_url: str):
+    if short_url in url_store:
+        original_url = url_store[short_url]
+        return RedirectResponse(url=original_url)
+    else:
+        raise HTTPException(status_code=404, detail="Short URL not found")
+
+
 
 if __name__ == "__main__":
     import uvicorn
