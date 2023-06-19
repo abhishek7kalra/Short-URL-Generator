@@ -1,32 +1,30 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-from typing import Dict
-from resources.key_generating_service import generate_short_url
-from fastapi.responses import RedirectResponse
-from temp_db import url_store
+import pymongo
+from fastapi import FastAPI
+from routers.url import router
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+MONGO_HOST = os.getenv("MONGO_HOST")
+MONGO_PORT = os.getenv("MONGO_PORT")
+MONGO_DB_NAME = os.getenv("MONGO_DB_NAME")
+MONGO_USERNAME = os.getenv("MONGO_USERNAME")
+MONGO_PASSWORD = os.getenv("MONGO_PASSWORD")
 
 app = FastAPI()
 
+client = pymongo.MongoClient(
+    host=MONGO_HOST,
+    port=int(MONGO_PORT),
+    username=MONGO_USERNAME,
+    password=MONGO_PASSWORD,
+    authSource=MONGO_DB_NAME
+)
 
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
+database = client[MONGO_DB_NAME]
 
-@app.post("/shorten")
-async def shorten_url(url_request: str):
-    short_url = generate_short_url()
-    url_store[short_url] = url_request
-    return {"short_url": short_url}
-
-@app.get("/{short_url}")
-async def redirect_to_original_url(short_url: str):
-    if short_url in url_store:
-        original_url = url_store[short_url]
-        return RedirectResponse(url=original_url)
-    else:
-        raise HTTPException(status_code=404, detail="Short URL not found")
-
-
+app.include_router(router)
 
 if __name__ == "__main__":
     import uvicorn
