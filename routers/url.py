@@ -8,7 +8,6 @@ from dotenv import load_dotenv
 import os
 import random
 import string
-from temp_db import url_store
 
 router = APIRouter()
 
@@ -36,8 +35,7 @@ def generate_short_url(length=6):
     characters = string.ascii_letters + string.digits
     while True:
         short_url = ''.join(random.choice(characters) for _ in range(length))
-        if short_url not in url_store:
-            return short_url
+        return short_url
 
 def is_short_url_exists(custom_alias):
     # Check if the custom_alias already exists
