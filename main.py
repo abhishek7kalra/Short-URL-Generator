@@ -1,6 +1,7 @@
 import pymongo
 from fastapi import FastAPI
-from routers.url import router
+from routers.url import router as url_router
+from routers.user import router as user_router
 from dotenv import load_dotenv
 import os
 
@@ -24,7 +25,8 @@ client = pymongo.MongoClient(
 
 database = client[MONGO_DB_NAME]
 
-app.include_router(router)
+app.include_router(url_router, prefix="/url")
+app.include_router(user_router, prefix="/user")
 
 if __name__ == "__main__":
     import uvicorn
